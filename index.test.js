@@ -44,7 +44,7 @@ const allActionCreators = [
 
 const error = Object.seal({ message: 'Error' });
 
-describe('Minimal example', () => {
+describe('Basic example', () => {
     const examples = crudFor('examples');
 
     describe('ActionTypes', () => {
@@ -136,7 +136,6 @@ describe('Minimal example', () => {
             );
 
             state = examples.reducer(state, createFailure(error));
-            console.log('NEW STATE', state);
 
             expect(state).toEqual(
                 expect.objectContaining({

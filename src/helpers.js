@@ -1,8 +1,8 @@
-const splitChars = [' ', '-', '_', '/'];
+export const toCamelCase = (str, opts) => {
+    const { splitChars = ['\\ ', '_', '/', '\\-'] } = opts || {};
 
-export const toCamelCase = (str) => {
     return str
-        .split(new RegExp(`(${splitChars.join('|')})`))
+        .split(new RegExp(`([${splitChars.join('|')}])`))
         .filter((word) => !splitChars.includes(word))
         .map((word, index) => {
             return index === 0

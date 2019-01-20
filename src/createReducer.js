@@ -1,13 +1,13 @@
 // @flow
-type ItemsMapT = { [string]: ?{ [string]: any } };
-type ItemsListT = Array<{ [string]: any }>;
+type ItemT = { [string]: any };
+type ItemsMapT = { [string]: ?ItemT };
+type ItemsListT = ItemT[];
 
 type StateT = {
     isCreating?: boolean,
     isDeleting?: boolean,
     isFetching?: boolean,
     isUpdating?: boolean,
-    // items: { [string]: ?{ [string]: any } } | Array<{ [string]: any }>,
     items: ItemsListT | ItemsMapT,
     selectedItem?: string | number,
 };
@@ -60,22 +60,21 @@ const createReducer = ({
         state: StateT = initialState,
         action: FluxStandardActionT | ActionT = { type: 'UNKOWN' }
     ): StateT => {
-        const { error, meta, payload, type } = action;
+        const { error, meta } = action;
         state = state ? state : initialState;
 
         if (error === true) {
             return {
                 ...state,
-                error: payload,
+                error: action.payload,
                 isCreating: false,
                 isDeleting: false,
                 isFetching: false,
                 isUpdating: false,
-                // items: isMode('map') ? {} : [],
             };
         }
 
-        switch (type) {
+        switch (action.type) {
             case actionTypes.CREATE_START: {
                 return {
                     ...state,
@@ -88,14 +87,14 @@ const createReducer = ({
                 let items;
 
                 // if payload contains a new item, add it!
-                if (payload) {
+                if (action.payload) {
                     if (isMode('map')) {
                         items = {
                             ...state.items,
-                            [payload[key]]: payload,
+                            [action.payload[key]]: action.payload,
                         };
                     } else {
-                        items = [].concat([...state.items], payload);
+                        items = [].concat([...state.items], action.payload);
                     }
                 }
 
@@ -124,24 +123,24 @@ const createReducer = ({
             }
 
             case actionTypes.UPDATE_SUCCESS: {
-                let items;
+                let items = state.items;
 
                 // if payload contains a new item, add it!
-                if (payload) {
+                if (action.payload) {
                     if (isMode('map')) {
                         items = {
                             ...state.items,
-                            [payload[key]]: payload,
+                            [action.payload[key]]: action.payload,
                         };
                     } else {
                         items = [...state.items];
                         const itemIndexToUpdate = items.findIndex(
-                            (item) => item[key] === payload[key]
+                            (item) => item[key] === action.payload[key]
                         );
                         if (itemIndexToUpdate === -1) {
-                            items = items.concat(payload);
+                            items = items.concat(action.payload);
                         } else {
-                            items.splice(itemIndexToUpdate, 1, payload);
+                            items.splice(itemIndexToUpdate, 1, action.payload);
                         }
                     }
                 }
@@ -167,19 +166,19 @@ const createReducer = ({
             case actionTypes.FETCH_LIST_SUCCESS: {
                 let items;
                 if (isMode('map')) {
-                    if (Array.isArray(payload)) {
+                    if (Array.isArray(action.payload)) {
                         // transform an array of items into a map, use `key` as identifier
                         items = {};
-                        payload.forEach((item) => {
+                        action.payload.forEach((item) => {
                             items[item[key]] = item;
                         });
                     } else {
-                        // we expect the payload to be in the correct {[key]: object} form already
-                        items = payload;
+                        // we expect the action.payload to be in the correct {[key]: object} form already
+                        items = action.payload;
                     }
                 } else {
-                    if (Array.isArray(payload)) {
-                        items = payload;
+                    if (Array.isArray(action.payload)) {
+                        items = action.payload;
                     } else {
                         items = Object.values(items);
                     }
@@ -198,21 +197,21 @@ const createReducer = ({
                 let items;
 
                 // if payload contains a new item, add it!
-                if (payload) {
+                if (action.payload) {
                     if (isMode('map')) {
                         items = {
                             ...(state.items || {}),
-                            [payload[key]]: payload,
+                            [action.payload[key]]: action.payload,
                         };
                     } else {
                         items = [...state.items];
                         const itemIndexToUpdate = items.findIndex(
-                            (item) => item[key] === payload[key]
+                            (item) => item[key] === action.payload[key]
                         );
                         if (itemIndexToUpdate === -1) {
-                            items = items.concat(payload);
+                            items = items.concat(action.payload);
                         } else {
-                            items.splice(itemIndexToUpdate, 1, payload);
+                            items.splice(itemIndexToUpdate, 1, action.payload);
                         }
                     }
                 }
@@ -241,11 +240,11 @@ const createReducer = ({
 
                 if (isMode('map') && !Array.isArray(state.items)) {
                     items = { ...state.items };
-                    delete items[payload];
+                    delete items[action.payload];
                 } else {
                     items = []
                         .concat(state.items)
-                        .filter((item) => item && item[key] !== payload);
+                        .filter((item) => item && item[key] !== action.payload);
                 }
 
                 return {
